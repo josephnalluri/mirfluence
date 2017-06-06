@@ -18,16 +18,24 @@ $queryResult = array(); //Varible to store the query result
 
 if(ISSET($_POST["disCategorySelected"]) and ISSET($_POST["netGenMethod"]) and ISSET($_POST["influenceMethodSelected"]))
  {
-   // The following piece of code is now not necessary because we have defaulted the value of netGenMethod to 'Optimized network'. So the following would never be executed. 
-   //if($netGenMethod == 'All edges above 0.9 score, rescored to 0.05' )
- // {
- //   $query = "SELECT mirna1 AS source, mirna2 AS target, score AS type FROM mirna_rescored WHERE dis_category='".$disCategorySelected."' ORDER BY type DESC LIMIT 500";
- //  $queryCSV = "SELECT mirna1 AS source, mirna2 AS target, score AS type FROM mirna_rescored WHERE dis_category='".$disCategorySelected."' ORDER BY type DESC into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirid/CSV/network.csv' fields terminated by ','"; //Dummy query for test
+   
+  if($netGenMethod == 'All edges above 0.9 score, rescored to 0.01' and $influenceMethodSelected == 'Intersection (Logical AND) approach') 
+  {
+    
+    $query = "SELECT mirna1 AS source, mirna2 AS target, rescored AS type FROM mirna_opt_v2 WHERE dis_category='".$disCategorySelected."' and comment_code='intersection' ORDER BY type DESC LIMIT 500";
+    $queryCSV = "SELECT mirna1 AS source, mirna2 AS target, rescored AS type FROM mirna_opt_v2 WHERE dis_category='".$disCategorySelected."' and comment_code='intersection' ORDER BY type DESC into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','"; //Dummy query for test
 
- // } //Ending if($netGenMethod...)
+  }
 
-//else 
-  if($netGenMethod == 'Optimized network based on expression scores' and $influenceMethodSelected == 'Intersection (Logical AND) approach') 
+else if($netGenMethod == 'All edges above 0.9 score, rescored to 0.01' and $influenceMethodSelected == 'Cumulative Union') 
+  {
+    
+    $query = "SELECT distinct mirna1 AS source, mirna2 AS target, rescored AS type FROM mirna_opt_v2 WHERE dis_category='".$disCategorySelected."' and comment_code IS NULL ORDER BY type DESC LIMIT 500";
+    $queryCSV = "SELECT mirna1 AS source, mirna2 AS target, rescored AS type FROM mirna_opt_v2 WHERE dis_category='".$disCategorySelected."' and comment_code IS NULL ORDER BY type DESC into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','"; //Dummy query for test
+
+  }
+ 
+else if($netGenMethod == 'Optimized network based on expression scores' and $influenceMethodSelected == 'Intersection (Logical AND) approach') 
   {
     
     $query = "SELECT mirna1 AS source, mirna2 AS target, score AS type FROM mirna_opt_v2 WHERE dis_category='".$disCategorySelected."' and comment_code='intersection' ORDER BY type DESC LIMIT 500";

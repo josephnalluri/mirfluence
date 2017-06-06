@@ -110,7 +110,7 @@ array_map('unlink', glob("/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/f
             <!-- Option for network generation. Option 1 is checked by default -->
             <h5>Please choose a network generation method</h5>
             <select name="network_gen_method" id="network_gen_method_dropdown" class="form-control">
-              <option>All edges above 0.9 score, rescored to 0.05</option>
+              <option>All edges above 0.9 score, rescored to 0.01</option>
               <option selected="selected">Optimized network based on expression scores</option>
             </select><br>
 
@@ -194,7 +194,7 @@ array_map('unlink', glob("/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/f
             <!-- Option for network generation. Option 1 is checked by default -->
             <h5>Please choose a network generation method</h5>
             <select name="category_network_gen_method" id="category_network_gen_method_dropdown" class="form-control">
-              <option>All edges above 0.9 score, rescored to 0.05</option>
+              <option>All edges above 0.9 score, rescored to 0.01</option>
               <option selected="selected">Optimized network based on expression scores</option>
             </select><br>
  
