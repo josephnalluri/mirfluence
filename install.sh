@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DEST_DIR="/var/www/bnet.egr.vcu.edu/public_html/mirfluence2"
+DEST_DIR="/var/www/bnet.egr.vcu.edu/public_html/mirfluence"
 
 # Remove previous folder
 if [[ -e "$DEST_DIR" ]]; then
