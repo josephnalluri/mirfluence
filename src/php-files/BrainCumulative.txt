@@ -1,0 +1,10 @@
+hsa-mir-187
+hsa-mir-181b-1
+hsa-mir-137
+hsa-let-7a-1
+hsa-mir-150
+hsa-mir-190
+hsa-mir-323
+hsa-mir-107
+hsa-mir-149
+hsa-mir-331
