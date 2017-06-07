@@ -12,6 +12,7 @@ if(file_exists('coverage_inference.txt')) { unlink('coverage_inference.txt'); }/
 $queryResult = array(); // Variable to store the query result
 $counterID = $_POST["counterID"];
 $influenceMethodSelected = $_POST["influenceMethodSelected"];
+$netGenMethod = $_POST["netGenMethod"];
 
 if($counterID == 1)
 {

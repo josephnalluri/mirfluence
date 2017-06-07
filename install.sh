@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-
 DEST_DIR="/var/www/bnet.egr.vcu.edu/public_html/mirfluence"
+
+(( UID != 0 )) && { echo "Can't execute the script. Instead, use 'sudo $0'"; exit 1; }
 
 # Remove previous folder
 if [[ -e "$DEST_DIR" ]]; then

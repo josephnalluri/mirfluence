@@ -369,36 +369,37 @@ function isBlank(str)
 function onSubmit(){
    	var disSelected = document.getElementById("selectDropdown").value;
 	var influenceMethodSelected = document.getElementById("category_infusion_diff_method_dropdown").value; 
-  
+    var netGenMethod = document.getElementById("category_network_gen_method_dropdown").value;
+
     //window.alert(disSelected + " " + influenceMethodSelected); 
    
    // To decide the AJAX request based on number of inputs.
 	switch(counterID)
 	{ 
-	  case 1: var params = {'disSelected':disSelected, 'influenceMethdoSelected':influenceMethodSelected,
+	  case 1: var params = {'disSelected':disSelected, 'influenceMethodSelected':influenceMethodSelected, 'netGenMethod':netGenMethod,
 			  'counterID':counterID};	
 	          break;
 			  
 	  case 2: var params = {'disSelected':disSelected,
-	          'disSelected2': document.getElementById("selectDropdown1").value, 'influenceMethodSelected':influenceMethodSelected,
-			  'counterID':counterID};	
+	          'disSelected2': document.getElementById("selectDropdown1").value, 'influenceMethodSelected':influenceMethodSelected,'netGenMethod':netGenMethod,
+              'counterID':counterID};	
 			  break;
 	  case 3: var params = {'disSelected':disSelected,
 	          'disSelected2': document.getElementById("selectDropdown1").value,
-			  'disSelected3': document.getElementById("selectDropdown2").value, 'influenceMethodSelected':influenceMethodSelected,
+			  'disSelected3': document.getElementById("selectDropdown2").value, 'influenceMethodSelected':influenceMethodSelected,'netGenMethod':netGenMethod,
 			  'counterID':counterID};
 	          break;
 	  case 4: var params = {'disSelected':disSelected,
 	          'disSelected2': document.getElementById("selectDropdown1").value,
 			  'disSelected3': document.getElementById("selectDropdown2").value,
-			  'disSelected4': document.getElementById("selectDropdown3").value, 'influenceMethodSelected':influenceMethodSelected,
+			  'disSelected4': document.getElementById("selectDropdown3").value, 'influenceMethodSelected':influenceMethodSelected,'netGenMethod':netGenMethod,
 			  'counterID':counterID};
 	          break;
 	  case 5: var params = {'disSelected':disSelected,
 	          'disSelected2': document.getElementById("selectDropdown1").value,
 			  'disSelected3': document.getElementById("selectDropdown2").value,
 			  'disSelected4': document.getElementById("selectDropdown3").value,
-			  'disSelected5': document.getElementById("selectDropdown4").value, 'influenceMethodSelected':influenceMethodSelected,
+			  'disSelected5': document.getElementById("selectDropdown4").value, 'influenceMethodSelected':influenceMethodSelected,'netGenMethod':netGenMethod,  
 			  'counterID':counterID};
 	          break;
 	}	
