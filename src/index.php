@@ -541,7 +541,7 @@ $.callTable_DC = function ()
    //Ajax Request to fetch top miRs
    $.ajax({
     type: "POST",
-    data: {'disCategorySelected':disCategorySelected,'influenceMethodSelected': influenceMethodSelected},
+    data: {'disCategorySelected':disCategorySelected,'influenceMethodSelected': influenceMethodSelected,'netGenMethod': netGenMethod},
     url: "topmiRtable_DC.php",
     success: function(topMirRecieved)
     {

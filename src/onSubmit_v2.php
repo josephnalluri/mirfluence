@@ -19,10 +19,19 @@ if($counterID == 1)
 	if(ISSET($_POST["disSelected"]))
 	{
 	 $disease = mysqli_real_escape_string($dbConnect, $_POST["disSelected"]);
-	 $query = "SELECT mirna1 AS source, mirna2 AS target, score AS type	FROM mirna_opt_v2 WHERE disease='".$disease."' ORDER by type DESC limit 500";
 
-     $queryCSV = "SELECT mirna1 AS source, mirna2 AS target, score AS type FROM mirna_opt_v2 WHERE disease='".$disease."' ORDER by type into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','";
-	
+     if($netGenMethod == 'Optimized network based on expression scores')
+      {
+	    $query = "SELECT mirna1 AS source, mirna2 AS target, score AS type	FROM mirna_opt_v2 WHERE disease='".$disease."' ORDER by type DESC limit 500";
+        $queryCSV = "SELECT mirna1 AS source, mirna2 AS target, score AS type FROM mirna_opt_v2 WHERE disease='".$disease."' ORDER by type into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','";
+	 }
+
+   else if($netGenMethod == 'All edges above 0.9 score, rescored to 0.01')
+     {
+        $query = "SELECT mirna1 AS source, mirna2 AS target, rescored AS type	FROM mirna_opt_v2 WHERE disease='".$disease."' ORDER by type DESC limit 500";
+        $queryCSV = "SELECT mirna1 AS source, mirna2 AS target, rescored AS type FROM mirna_opt_v2 WHERE disease='".$disease."' ORDER by type into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','";
+     }
+     
 	 $queryResult = mysqli_query($dbConnect, $query);
      $queryResultCSV = mysqli_query($dbConnect, $queryCSV);
 
@@ -37,7 +46,7 @@ if($counterID == 1)
 	  echo ("ISSET condition failed!");
 }
 
-elseif($counterID == 2)
+else if($counterID == 2)
 {
    if(ISSET($_POST["disSelected"]) and ISSET($_POST["disSelected2"]))
 	{
@@ -45,7 +54,7 @@ elseif($counterID == 2)
 	 $disease2 = mysqli_real_escape_string($dbConnect, $_POST["disSelected2"]);
 	 $filenameString ="'$disease.txt','$disease2.txt'";
 	
-     if($influenceMethodSelected == 'Intersection (Logical AND) approach')
+     if($influenceMethodSelected == 'Intersection (Logical AND) approach' and $netGenMethod == 'Optimized network based on expression scores')
      {
        // Query for visualization for intersection approach 
        $query = "select a.mirna1 as source, a.mirna2 as target, a.score as type from (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease."')a inner join (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease2."')b using (mirna1,mirna2) order by type desc limit 500";
@@ -53,7 +62,8 @@ elseif($counterID == 2)
       // Query for generating network.csv file
 	 $queryGraph = "select a.mirna1 as source, a.mirna2 as target, a.score as type from (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease."')a inner join (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease2."')b using (mirna1,mirna2) order by type desc into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','";
     }
-   else if($influenceMethodSelected == 'Cumulative Union') 
+
+   else if($influenceMethodSelected == 'Cumulative Union' and $netGenMethod == 'Optimized network based on expression scores') 
     {
       // Query for visualization for CUMULATIVE UNION approach 
       $query = "select distinct mirna1 as source, mirna2 as target, score as type from mirna_opt_v2 where disease IN ('".$disease."','".$disease2."') order by type desc limit 500";
@@ -62,15 +72,42 @@ elseif($counterID == 2)
 	 $queryGraph = "select distinct mirna1 as source, mirna2 as target, score as type from mirna_opt_v2 where disease IN ('".$disease."','".$disease2."') order by type desc into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','";
     }
 
+  
+   else if($influenceMethodSelected == 'Intersection (Logical AND) approach' and $netGenMethod == 'All edges above 0.9 score, rescored to 0.01')
+     {
+       // Query for visualization for intersection approach 
+       $query = "select a.mirna1 as source, a.mirna2 as target, a.rescored as type from (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease."')a inner join (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease2."')b using (mirna1,mirna2) order by type desc limit 500";
+     	 
+      // Query for generating network.csv file
+	 $queryGraph = "select a.mirna1 as source, a.mirna2 as target, a.rescored as type from (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease."')a inner join (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease2."')b using (mirna1,mirna2) order by type desc into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','";
+    }
+
+   else if($influenceMethodSelected == 'Cumulative Union' and $netGenMethod == 'All edges above 0.9 score, rescored to 0.01') 
+    {
+      // Query for visualization for CUMULATIVE UNION approach 
+      $query = "select distinct mirna1 as source, mirna2 as target, rescored as type from mirna_opt_v2 where disease IN ('".$disease."','".$disease2."') order by type desc limit 500";
+     	 
+      // Query for generating network.csv file
+	 $queryGraph = "select distinct mirna1 as source, mirna2 as target, rescored as type from mirna_opt_v2 where disease IN ('".$disease."','".$disease2."') order by type desc into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','";
+    }
 
 	 // Query for generating individual disease files for MATLAB code RankFinder.m/ intersection.m
+  if($netGenMethod == 'Optimized network based on expression scores')
+  {
      $queryCSV = "select m1_id, m2_id, score from mirna_opt_v2 where disease='".$disease."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease.".txt'";
      $queryCSV2= "select m1_id, m2_id, score from mirna_opt_v2 where disease='".$disease2."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease2.".txt'";
+  }
 	 
-  	 $queryResult = mysqli_query($dbConnect, $query); // Query to display the graph. Regardless of Influence Diffusion methodology
+else if($netGenMethod == 'All edges above 0.9 score, rescored to 0.01')
+  {
+     $queryCSV = "select m1_id, m2_id, rescored from mirna_opt_v2 where disease='".$disease."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease.".txt'";
+     $queryCSV2= "select m1_id, m2_id, rescored from mirna_opt_v2 where disease='".$disease2."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease2.".txt'";
+  }
+
+     //Execute the queries
+	 $queryResult = mysqli_query($dbConnect, $query); // Query to display the graph. Regardless of Influence Diffusion methodology
      $queryGraphResult = mysqli_query($dbConnect, $queryGraph); //Query to write the graph to network.csv
-	 
-     $queryResultCSV = mysqli_query($dbConnect, $queryCSV);  // Execute 1st query to generate disease network file
+	 $queryResultCSV = mysqli_query($dbConnect, $queryCSV);  // Execute 1st query to generate disease network file
      $queryResultCSV = mysqli_query($dbConnect, $queryCSV2); //Execute 2nd query to generate disease network file
 
 	 for ($x = 0; $x < mysqli_num_rows($queryResult); $x++) 
@@ -79,6 +116,7 @@ elseif($counterID == 2)
 	  }
 
 	  echo json_encode($data);
+   
       if($influenceMethodSelected == 'Cumulative Union')
         {
           shell_exec("matlab -nojvm -nodisplay -r \"try Ranking_finder({'CSV/files/".$disease.".txt','CSV/files/".$disease2.".txt'}); catch; end; quit\""); //It works!
@@ -152,14 +190,15 @@ elseif($counterID == 3)
 	 $disease3 = mysqli_real_escape_string($dbConnect, $_POST["disSelected3"]);
      $filenameString ="'$disease.txt','$disease2.txt','$disease3.txt'";
 	
-     if($influenceMethodSelected == 'Intersection (Logical AND) approach')
+     if($influenceMethodSelected == 'Intersection (Logical AND) approach' and $netGenMethod == 'Optimized network based on expression scores')
      {
        // Query for visualization for intersection approach 
        $query = "select a.mirna1 as source, a.mirna2 as target, a.score as type from (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease."')a inner join (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease2."')b using (mirna1,mirna2) inner join (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease3."')c using (mirna1, mirna2) order by type desc limit 500";
        // Query for generating network.csv file
 	   $queryGraph = "select a.mirna1 as source, a.mirna2 as target, a.score as type from (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease."')a inner join (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease2."')b using (mirna1,mirna2) inner join (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease3."')c using (mirna1, mirna2) order by type desc into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','";
      }
-   else if($influenceMethodSelected == 'Cumulative Union') 
+
+    else if($influenceMethodSelected == 'Cumulative Union' and $netGenMethod == 'Optimized network based on expression scores') 
      {
       // Query for visualization for CUMULATIVE UNION approach 
       $query = "select distinct mirna1 as source, mirna2 as target, score as type from mirna_opt_v2 where disease IN ('".$disease."','".$disease2."','".$disease3."') order by type desc limit 500";
@@ -167,11 +206,42 @@ elseif($counterID == 3)
       // Query for generating network.csv file
 	 $queryGraph = "select distinct mirna1 as source, mirna2 as target, score as type from mirna_opt_v2 where disease IN ('".$disease."','".$disease2."','".$disease3."') order by type desc into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','";
      }
+
+
+    else if($influenceMethodSelected == 'Intersection (Logical AND) approach' and $netGenMethod == 'All edges above 0.9 score, rescored to 0.01')
+     {
+       // Query for visualization for intersection approach 
+       $query = "select a.mirna1 as source, a.mirna2 as target, a.rescored as type from (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease."')a inner join (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease2."')b using (mirna1,mirna2) inner join (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease3."')c using (mirna1, mirna2) order by type desc limit 500";
+       // Query for generating network.csv file
+	   $queryGraph = "select a.mirna1 as source, a.mirna2 as target, a.rescored as type from (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease."')a inner join (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease2."')b using (mirna1,mirna2) inner join (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease3."')c using (mirna1, mirna2) order by type desc into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','";
+     }
+
+   
+    else if($influenceMethodSelected == 'Cumulative Union' and $netGenMethod == 'All edges above 0.9 score, rescored to 0.01') 
+     {
+      // Query for visualization for CUMULATIVE UNION approach 
+      $query = "select distinct mirna1 as source, mirna2 as target, rescored as type from mirna_opt_v2 where disease IN ('".$disease."','".$disease2."','".$disease3."') order by type desc limit 500";
+     	 
+      // Query for generating network.csv file
+	 $queryGraph = "select distinct mirna1 as source, mirna2 as target, rescored as type from mirna_opt_v2 where disease IN ('".$disease."','".$disease2."','".$disease3."') order by type desc into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','";
+     }
+
 	 // Query for generating individual disease files for MATLAB code RankFinder.m
+  if($netGenMethod == 'Optimized network based on expression scores')
+   {
      $queryCSV = "select m1_id, m2_id, score from mirna_opt_v2 where disease='".$disease."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease.".txt'";
      $queryCSV2= "select m1_id, m2_id, score from mirna_opt_v2 where disease='".$disease2."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease2.".txt'";
 	 $queryCSV3= "select m1_id, m2_id, score from mirna_opt_v2 where disease='".$disease3."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease3.".txt'";
-  	 
+   }
+
+else if($netGenMethod == 'All edges above 0.9 score, rescored to 0.01')
+   {
+     $queryCSV = "select m1_id, m2_id, rescored from mirna_opt_v2 where disease='".$disease."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease.".txt'";
+     $queryCSV2= "select m1_id, m2_id, rescored from mirna_opt_v2 where disease='".$disease2."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease2.".txt'";
+	 $queryCSV3= "select m1_id, m2_id, rescored from mirna_opt_v2 where disease='".$disease3."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease3.".txt'";
+   }
+
+	 
      $queryResult = mysqli_query($dbConnect, $query); // Query to display the graph. Regardless of Influence Diffusion methodology
      $queryGraphResult = mysqli_query($dbConnect, $queryGraph); //Query to write the graph to network.csv
 	 
@@ -179,7 +249,7 @@ elseif($counterID == 3)
      $queryResultCSV = mysqli_query($dbConnect, $queryCSV2); //Execute 2nd query to generate disease network file
      $queryResultCSV = mysqli_query($dbConnect, $queryCSV3); //Execute 3nd query to generate disease network file
 	 
-    for ($x = 0; $x < mysqli_num_rows($queryResult); $x++) 
+     for ($x = 0; $x < mysqli_num_rows($queryResult); $x++) 
 	  {
 		$data[] = mysqli_fetch_assoc($queryResult);
 	  }
@@ -256,31 +326,57 @@ elseif($counterID == 4)
 	 $disease4 = mysqli_real_escape_string($dbConnect, $_POST["disSelected4"]);
      $filenameString="'$disease.txt','$disease2.txt','$disease3.txt','$disease4.txt'";
 
-     if($influenceMethodSelected == 'Intersection (Logical AND) approach')
+     if($influenceMethodSelected == 'Intersection (Logical AND) approach' and $netGenMethod == 'Optimized network based on expression scores')
      {
        // Query for visualization for intersection approach 
        $query = "select a.mirna1 as source, a.mirna2 as target, a.score as type from (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease."')a inner join (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease2."')b using (mirna1,mirna2) inner join (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease3."')c using (mirna1, mirna2) inner join (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease4."')d using (mirna1, mirna2) order by type desc limit 500";
        // Query for generating network.csv file
 	   $queryGraph = "select a.mirna1 as source, a.mirna2 as target, a.score as type from (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease."')a inner join (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease2."')b using (mirna1,mirna2) inner join (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease3."')c using (mirna1, mirna2) inner join (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease4."')d using (mirna1, mirna2) order by type desc into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','";
      }
-   else if($influenceMethodSelected == 'Cumulative Union') 
-    {
+
+     else if($influenceMethodSelected == 'Cumulative Union' and $netGenMethod == 'Optimized network based on expression scores') 
+     {
       // Query for visualization for CUMULATIVE UNION approach 
-      $query = "select distinct mirna1 as source, mirna2 as target, score as type from mirna_opt_v2 where disease IN ('".$disease."','".$disease2."','".$disease3."','".$disease4."') order by type desc limit 500";
-     	 
+      $query = "select distinct mirna1 as source, mirna2 as target, score as type from mirna_opt_v2 where disease IN ('".$disease."','".$disease2."','".$disease3."','".$disease4."') order by type desc limit 500";	 
       // Query for generating network.csv file
 	 $queryGraph = "select distinct mirna1 as source, mirna2 as target, score as type from mirna_opt_v2 where disease IN ('".$disease."','".$disease2."','".$disease3."','".$disease4."') order by type desc into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','";
-    }
+     }
+  
+     else if($influenceMethodSelected == 'Intersection (Logical AND) approach' and $netGenMethod == 'All edges above 0.9 score, rescored to 0.01')
+     {
+       // Query for visualization for intersection approach 
+       $query = "select a.mirna1 as source, a.mirna2 as target, a.rescored as type from (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease."')a inner join (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease2."')b using (mirna1,mirna2) inner join (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease3."')c using (mirna1, mirna2) inner join (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease4."')d using (mirna1, mirna2) order by type desc limit 500";
+       // Query for generating network.csv file
+	   $queryGraph = "select a.mirna1 as source, a.mirna2 as target, a.rescored as type from (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease."')a inner join (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease2."')b using (mirna1,mirna2) inner join (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease3."')c using (mirna1, mirna2) inner join (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease4."')d using (mirna1, mirna2) order by type desc into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','";
+     }
+
+     else if($influenceMethodSelected == 'Cumulative Union' and $netGenMethod == 'All edges above 0.9 score, rescored to 0.01') 
+     {
+      // Query for visualization for CUMULATIVE UNION approach 
+      $query = "select distinct mirna1 as source, mirna2 as target, rescored as type from mirna_opt_v2 where disease IN ('".$disease."','".$disease2."','".$disease3."','".$disease4."') order by type desc limit 500";	 
+      // Query for generating network.csv file
+	 $queryGraph = "select distinct mirna1 as source, mirna2 as target, rescored as type from mirna_opt_v2 where disease IN ('".$disease."','".$disease2."','".$disease3."','".$disease4."') order by type desc into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','";
+     }
 
 	 // Query for generating individual disease files for MATLAB code RankFinder.m
-     $queryCSV = "select m1_id, m2_id, score from mirna_opt_v2 where disease='".$disease."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease.".txt'";
-     $queryCSV2= "select m1_id, m2_id, score from mirna_opt_v2 where disease='".$disease2."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease2.".txt'";
-	 $queryCSV3= "select m1_id, m2_id, score from mirna_opt_v2 where disease='".$disease3."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease3.".txt'";
-  	 $queryCSV4= "select m1_id, m2_id, score from mirna_opt_v2 where disease='".$disease4."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease4.".txt'";
-	
+    if($netGenMethod == 'Optimized network based on expression scores')
+    {
+      $queryCSV = "select m1_id, m2_id, score from mirna_opt_v2 where disease='".$disease."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease.".txt'";
+      $queryCSV2= "select m1_id, m2_id, score from mirna_opt_v2 where disease='".$disease2."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease2.".txt'";
+  	  $queryCSV3= "select m1_id, m2_id, score from mirna_opt_v2 where disease='".$disease3."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease3.".txt'";
+  	  $queryCSV4= "select m1_id, m2_id, score from mirna_opt_v2 where disease='".$disease4."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease4.".txt'";
+    }
+
+   else if($netGenMethod == 'All edges above 0.9 score, rescored to 0.01')	
+    {
+      $queryCSV = "select m1_id, m2_id, rescored from mirna_opt_v2 where disease='".$disease."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease.".txt'";
+      $queryCSV2= "select m1_id, m2_id, rescored from mirna_opt_v2 where disease='".$disease2."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease2.".txt'";
+  	  $queryCSV3= "select m1_id, m2_id, rescored from mirna_opt_v2 where disease='".$disease3."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease3.".txt'";
+  	  $queryCSV4= "select m1_id, m2_id, score from mirna_opt_v2 where disease='".$disease4."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease4.".txt'";
+    }
+   
 	 $queryResult = mysqli_query($dbConnect, $query);
      $queryGraphResult = mysqli_query($dbConnect, $queryGraph);
-    
      $queryResultCSV = mysqli_query($dbConnect, $queryCSV);
      $queryResultCSV = mysqli_query($dbConnect, $queryCSV2);
      $queryResultCSV = mysqli_query($dbConnect, $queryCSV3);
@@ -368,32 +464,61 @@ elseif($counterID == 5)
 	 $disease5 = mysqli_real_escape_string($dbConnect, $_POST["disSelected5"]);
      $filenameString="'$disease.txt','$disease2.txt','$disease3.txt','$disease4.txt','$disease5.txt'";
 	
-     if($influenceMethodSelected == 'Intersection (Logical AND) approach')
+     if($influenceMethodSelected == 'Intersection (Logical AND) approach' and $netGenMethod == 'Optimized network based on expression scores')
      {
        // Query for visualization for intersection approach 
        $query = "select a.mirna1 as source, a.mirna2 as target, a.score as type from (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease."')a inner join (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease2."')b using (mirna1,mirna2) inner join (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease3."')c using (mirna1, mirna2) inner join (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease4."')d using (mirna1, mirna2) inner join (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease5."')e using (mirna1, mirna2) order by type desc limit 500";
        // Query for generating network.csv file
 	   $queryGraph = "select a.mirna1 as source, a.mirna2 as target, a.score as type from (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease."')a inner join (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease2."')b using (mirna1,mirna2) inner join (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease3."')c using (mirna1, mirna2) inner join (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease4."')d using (mirna1, mirna2) inner join (select mirna1, mirna2, score from mirna_opt_v2 where disease='".$disease5."')e using (mirna1, mirna2) order by type desc into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','";
      }
-   else if($influenceMethodSelected == 'Cumulative Union') 
-    {
+
+     else if($influenceMethodSelected == 'Cumulative Union' and $netGenMethod == 'Optimized network based on expression scores') 
+     {
       // Query for visualization for CUMULATIVE UNION approach 
       $query = "select distinct mirna1 as source, mirna2 as target, score as type from mirna_opt_v2 where disease IN ('".$disease."','".$disease2."','".$disease3."','".$disease4."','".$disease5."') order by type desc limit 500";
      	 
       // Query for generating network.csv file
 	 $queryGraph = "select distinct mirna1 as source, mirna2 as target, score as type from mirna_opt_v2 where disease IN ('".$disease."','".$disease2."','".$disease3."','".$disease4."','".$disease5."') order by type desc into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','";
+     }
+
+     else if($influenceMethodSelected == 'Intersection (Logical AND) approach' and $netGenMethod == 'All edges above 0.9 score, rescored to 0.01')
+     {
+       // Query for visualization for intersection approach 
+       $query = "select a.mirna1 as source, a.mirna2 as target, a.rescored as type from (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease."')a inner join (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease2."')b using (mirna1,mirna2) inner join (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease3."')c using (mirna1, mirna2) inner join (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease4."')d using (mirna1, mirna2) inner join (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease5."')e using (mirna1, mirna2) order by type desc limit 500";
+       // Query for generating network.csv file
+	   $queryGraph = "select a.mirna1 as source, a.mirna2 as target, a.rescored as type from (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease."')a inner join (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease2."')b using (mirna1,mirna2) inner join (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease3."')c using (mirna1, mirna2) inner join (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease4."')d using (mirna1, mirna2) inner join (select mirna1, mirna2, rescored from mirna_opt_v2 where disease='".$disease5."')e using (mirna1, mirna2) order by type desc into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','";
+     }
+
+    else if($influenceMethodSelected == 'Cumulative Union' and $netGenMethod == 'All edges above 0.9 score, rescored to 0.01') 
+    {
+      // Query for visualization for CUMULATIVE UNION approach 
+      $query = "select distinct mirna1 as source, mirna2 as target, rescored as type from mirna_opt_v2 where disease IN ('".$disease."','".$disease2."','".$disease3."','".$disease4."','".$disease5."') order by type desc limit 500";
+     	 
+      // Query for generating network.csv file
+	 $queryGraph = "select distinct mirna1 as source, mirna2 as target, rescored as type from mirna_opt_v2 where disease IN ('".$disease."','".$disease2."','".$disease3."','".$disease4."','".$disease5."') order by type desc into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','";
     }
 
-	 // Query for generating individual disease files for MATLAB code RankFinder.m
+	 //Query for generating individual disease files for MATLAB code RankFinder.m
+   if($netGenMethod == 'Optimized network based on expression scores')
+    {
      $queryCSV = "select m1_id, m2_id, score from mirna_opt_v2 where disease='".$disease."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease.".txt'";
      $queryCSV2= "select m1_id, m2_id, score from mirna_opt_v2 where disease='".$disease2."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease2.".txt'";
 	 $queryCSV3= "select m1_id, m2_id, score from mirna_opt_v2 where disease='".$disease3."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease3.".txt'";
   	 $queryCSV4= "select m1_id, m2_id, score from mirna_opt_v2 where disease='".$disease4."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease4.".txt'";
      $queryCSV5= "select m1_id, m2_id, score from mirna_opt_v2 where disease='".$disease5."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease5.".txt'";
-	 
+	} 
+
+   else if($netGenMethod == 'All edges above 0.9 score, rescored to 0.01')
+    {
+     $queryCSV = "select m1_id, m2_id, rescored from mirna_opt_v2 where disease='".$disease."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease.".txt'";
+     $queryCSV2= "select m1_id, m2_id, rescored from mirna_opt_v2 where disease='".$disease2."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease2.".txt'";
+	 $queryCSV3= "select m1_id, m2_id, rescored from mirna_opt_v2 where disease='".$disease3."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease3.".txt'";
+  	 $queryCSV4= "select m1_id, m2_id, rescored from mirna_opt_v2 where disease='".$disease4."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease4.".txt'";
+     $queryCSV5= "select m1_id, m2_id, rescored from mirna_opt_v2 where disease='".$disease5."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/".$disease5.".txt'";
+	} 
+
      $queryResult = mysqli_query($dbConnect, $query);
      $queryGraphResult = mysqli_query($dbConnect, $queryGraph);
-
 	 $queryResultCSV = mysqli_query($dbConnect, $queryCSV);
 	 $queryResultCSV = mysqli_query($dbConnect, $queryCSV2);
 	 $queryResultCSV = mysqli_query($dbConnect, $queryCSV3);

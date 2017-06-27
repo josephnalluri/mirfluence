@@ -1,5 +1,5 @@
 <?php
-
+//Filename: single_disease_onSubmit.php
   
 require_once('dbAcess.php');
 
@@ -17,11 +17,17 @@ if(ISSET($_POST["disSelected"]) and ISSET($_POST["netGenMethod"]))
     {
       $query = "SELECT mirna1 AS source, mirna2 AS target, score AS type FROM mirna_opt_v2 WHERE disease='".$disSelected."' ORDER BY type DESC LIMIT 500";
       $queryGraph = "SELECT mirna1 AS source, mirna2 AS target, score AS type FROM mirna_opt_v2 WHERE disease='".$disSelected."' ORDER BY type DESC into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','";
+      $queryCSV = "select m1_id, m2_id, score from mirna_opt_v2 where disease='".$disSelected."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/intersectionOutput.txt'";
     } //Ending if.
 
-    $queryCSV = "select m1_id, m2_id, score from mirna_opt_v2 where disease='".$disSelected."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/intersectionOutput.txt'";
-
-    $queryResult = mysqli_query($dbConnect, $query); // execute query to generate results
+else if($netGenMethod == 'All edges above 0.9 score, rescored to 0.05')
+    {
+      $query = "SELECT mirna1 AS source, mirna2 AS target, rescored AS type FROM mirna_opt_v2 WHERE disease='".$disSelected."' ORDER BY type DESC LIMIT 500";
+      $queryGraph = "SELECT mirna1 AS source, mirna2 AS target, rescored AS type FROM mirna_opt_v2 WHERE disease='".$disSelected."' ORDER BY type DESC into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/network.csv' fields terminated by ','";
+      $queryCSV = "select m1_id, m2_id, rescored from mirna_opt_v2 where disease='".$disSelected."' into outfile '/var/www/bnet.egr.vcu.edu/public_html/mirfluence/CSV/files/intersectionOutput.txt'";
+    } //Ending if.
+  
+  $queryResult = mysqli_query($dbConnect, $query); // execute query to generate results
     $queryResultGraph = mysqli_query($dbConnect, $queryGraph); // execute query to save to network.csv
     $queryResultCSV = mysqli_query($dbConnect, $queryCSV); // execute query to save to network.csv
 
