@@ -1,4 +1,4 @@
-# mirfluence-1
+# mirfluence
 
 This tool predicts influential disease-miRNAs in several diseases using an influence diffusion algorithm. The detected miRNAs have the highest coverage and impact-ability in a miRNA-miRNA network in a particular disease
 
